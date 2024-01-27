@@ -7,14 +7,19 @@
 
 constexpr uint16_t
         BGP_MSGSIZE_MIN = 19,
-        BGP_MSGSIZE_MAX = 4096;
+        BGP_MSGSIZE_MAX = 4096,
+        BGP_MSGSIZE_OPENMSG_MIN = 29,
+        BGP_MSGSIZE_UPDATEMSG_MIN = 23,
+        BGP_MSGSIZE_KEEPALIVEMSG = 19,
+        BGP_MSGSIZE_NOTIFICATIONMSG_MIN = 21;
+
+constexpr uint8_t BGP_MSG_MARKER_LEN = 16;
 
 constexpr uint8_t
         BGP_MSGTYPE_OPEN = 1,
         BGP_MSGTYPE_UPDATE = 2,
         BGP_MSGTYPE_NOTIFICATION = 3,
-        BGP_MSGTYPE_KEEPALIVE = 4,
-        BGP_MSGTYPE_ROUTE_REFRESH = 5;
+        BGP_MSGTYPE_KEEPALIVE = 4;
 
 constexpr uint8_t
         BGP_ATTRTYPECODE_ORIGIN = 1,
@@ -72,10 +77,11 @@ constexpr uint8_t
 namespace route::bgp {
 #pragma pack(push, 1)
     struct Header {
-        uint8_t marker[16];
+        uint8_t marker[BGP_MSG_MARKER_LEN];
         uint16_t length;
         uint8_t type;
     };
+    static_assert(sizeof(Header) == BGP_MSGSIZE_MIN);
 
     struct OptionalParameter {
         uint8_t param_type;
@@ -91,6 +97,7 @@ namespace route::bgp {
         uint8_t opt_params_len;
         OptionalParameter *opt_params;
     };
+    static_assert(sizeof(OpenMessage) - sizeof(OptionalParameter *) + BGP_MSGSIZE_MIN == BGP_MSGSIZE_OPENMSG_MIN);
 
     struct IPAddressPrefix {
         uint8_t length;
@@ -155,20 +162,21 @@ namespace route::bgp {
         PathAttribute *path_attrs;
         IPAddressPrefix *nlri;
     };
+    static_assert(sizeof(UpdateMessage) - 2 * sizeof(IPAddressPrefix *) - sizeof(PathAttribute *) + BGP_MSGSIZE_MIN ==
+                  BGP_MSGSIZE_UPDATEMSG_MIN);
+
+    using KeepAliveMessage = nullptr_t;
 
     struct NotificationMessage {
         uint8_t error_code;
         uint8_t error_subcode;
         uint8_t *data;
+
+        NotificationMessage();
     };
 
-    // KEEPALIVE message consists of only the header
-    struct KeepAliveMessage {
-    };
+    static_assert(sizeof(NotificationMessage) - sizeof(uint8_t *) + BGP_MSGSIZE_MIN == BGP_MSGSIZE_NOTIFICATIONMSG_MIN);
 
-    struct RouteRefreshMessage {
-        // TODO Implement ROUTE-REFRESH extension in https://datatracker.ietf.org/doc/html/rfc2918
-    };
 #pragma pack(pop)
 }
 

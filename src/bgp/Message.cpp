@@ -50,3 +50,6 @@ route::bgp::AttributeType::AttributeType(uint8_t attr_type_code, uint8_t options
     // Set ignored bits to 0
     attr_flags.ignored = 0;
 }
+
+route::bgp::NotificationMessage::NotificationMessage() : error_code(0), error_subcode(0), data(nullptr) {
+}

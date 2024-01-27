@@ -12,13 +12,16 @@
 
 namespace route::bgp {
     struct DeserializeMessageResult {
-        std::variant<OpenMessage, UpdateMessage, NotificationMessage, KeepAliveMessage, RouteRefreshMessage> message;
-        std::optional<NotificationMessage> notification_message;
+        std::variant<OpenMessage, UpdateMessage, NotificationMessage, KeepAliveMessage> message;
+        std::optional<NotificationMessage> error_response;
     };
 
     class MessageDeserializer {
     public:
-        DeserializeMessageResult deserialize(const uint8_t *buffer, uint16_t buf_size);
+        static DeserializeMessageResult deserialize(const uint8_t *buffer, uint16_t buf_size);
+
+    private:
+        static inline bool bad_msg_size(uint16_t size);
     };
 }
 
