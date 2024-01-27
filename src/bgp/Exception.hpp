@@ -9,16 +9,21 @@
 
 
 namespace route::bgp {
-    class MessageFormatException : public std::runtime_error {
+    class ExceptionWithErrorCode : public std::runtime_error {
     public:
-        static constexpr uint8_t ERR_CODE_INVAL_ATTR_TYPE = 1;
-
-        explicit MessageFormatException(uint8_t err_code);
+        explicit ExceptionWithErrorCode(uint8_t err_code);
 
         [[nodiscard]] uint8_t get_err_code() const;
 
     private:
         const uint8_t err_code;
+    };
+
+    class MessageFormatException : public ExceptionWithErrorCode {
+    public:
+        static constexpr uint8_t ERR_CODE_INVAL_ATTR_TYPE = 1;
+
+        explicit MessageFormatException(uint8_t err_code);
     };
 }
 

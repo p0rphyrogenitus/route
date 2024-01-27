@@ -1,9 +1,13 @@
-#ifndef ROUTE_MESSAGE_H
-#define ROUTE_MESSAGE_H
+#ifndef ROUTE_MESSAGE_HPP
+#define ROUTE_MESSAGE_HPP
 
 
 #include <cstdint>
 
+
+constexpr uint16_t
+        BGP_MSGSIZE_MIN = 19,
+        BGP_MSGSIZE_MAX = 4096;
 
 constexpr uint8_t
         BGP_MSGTYPE_OPEN = 1,
@@ -108,6 +112,14 @@ namespace route::bgp {
         AttributeFlags attr_flags;
         uint8_t attr_type_code;
 
+        /**
+         * Builds an AttributeType that is well-behaved for the given attr_type_code, that is, where AttributeFlags are
+         * initialized properly for the given code. Options cover flags (partial, extended_len) where the AttributeType
+         * might be ambiguous given just a type code.
+         * @param attr_type_code Attribute type code.
+         * @param options Ignored if it conflicts with good behavior as described above. Second least-significant bit
+         * sets extended_len. Least-significant bit sets partial. Remaining bits are always ignored.
+         */
         explicit AttributeType(uint8_t attr_type_code, uint8_t options);
     };
 
@@ -144,14 +156,20 @@ namespace route::bgp {
         IPAddressPrefix *nlri;
     };
 
-    // KEEPALIVE message consists of only the header
-
     struct NotificationMessage {
         uint8_t error_code;
         uint8_t error_subcode;
         uint8_t *data;
     };
+
+    // KEEPALIVE message consists of only the header
+    struct KeepAliveMessage {
+    };
+
+    struct RouteRefreshMessage {
+        // TODO Implement ROUTE-REFRESH extension in https://datatracker.ietf.org/doc/html/rfc2918
+    };
 #pragma pack(pop)
 }
 
-#endif //ROUTE_MESSAGE_H
+#endif //ROUTE_MESSAGE_HPP
