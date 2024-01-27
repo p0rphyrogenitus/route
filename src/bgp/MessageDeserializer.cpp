@@ -48,8 +48,29 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
         result.error->header.length = BGP_MSGSIZE_NOTIFICATIONMSG_MIN + 2;
         return result;
     }
-    
-    // TODO deserialize
+
+    switch (header->type) {
+        case BGP_MSGTYPE_OPEN:
+            // TODO
+            break;
+        case BGP_MSGTYPE_UPDATE:
+            // TODO
+            break;
+        case BGP_MSGTYPE_NOTIFICATION:
+            // TODO
+            break;
+        case BGP_MSGTYPE_KEEPALIVE:
+            // TODO
+            break;
+        default:
+            result.error.emplace();
+            result.error->message.error_code = BGP_ERR_MESSAGE_HEADER;
+            result.error->message.error_subcode = BGP_SUBERR_MESSAGE_HEADER_BAD_MSG_TYPE;
+            result.error->message.data = std::make_unique<uint8_t[]>(1);
+            result.error->message.data[0] = header->length;
+            result.error->header.length = BGP_MSGSIZE_NOTIFICATIONMSG_MIN + 1;
+            return result;
+    }
 
     return result;
 }
