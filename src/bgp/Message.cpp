@@ -1,6 +1,12 @@
+#include <algorithm>
 #include "Exception.hpp"
 #include "Message.hpp"
 
+
+route::bgp::Header::Header() {
+    std::fill(std::begin(marker), std::end(marker), 0xFF);
+    length = type = 0;
+}
 
 route::bgp::AttributeType::AttributeType(uint8_t attr_type_code, uint8_t options = 0) : attr_type_code(
         attr_type_code) {

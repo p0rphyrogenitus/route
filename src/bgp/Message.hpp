@@ -3,6 +3,7 @@
 
 
 #include <cstdint>
+#include <memory>
 
 
 constexpr uint16_t
@@ -76,17 +77,21 @@ constexpr uint8_t
 
 namespace route::bgp {
 #pragma pack(push, 1)
+
     struct Header {
-        uint8_t marker[BGP_MSG_MARKER_LEN];
+        uint8_t marker[BGP_MSG_MARKER_LEN]{};
         uint16_t length;
         uint8_t type;
+
+        Header();
     };
+
     static_assert(sizeof(Header) == BGP_MSGSIZE_MIN);
 
     struct OptionalParameter {
         uint8_t param_type;
         uint8_t param_len;
-        uint8_t *param_value;
+        std::unique_ptr<uint8_t[]> param_value;
     };
 
     struct OpenMessage {
@@ -95,13 +100,14 @@ namespace route::bgp {
         uint16_t hold_time;
         uint32_t bgp_id;
         uint8_t opt_params_len;
-        OptionalParameter *opt_params;
+        std::unique_ptr<OptionalParameter[]> opt_params;
     };
-    static_assert(sizeof(OpenMessage) - sizeof(OptionalParameter *) + BGP_MSGSIZE_MIN == BGP_MSGSIZE_OPENMSG_MIN);
+    static_assert(sizeof(OpenMessage) - sizeof(std::unique_ptr<OptionalParameter[]>) + BGP_MSGSIZE_MIN ==
+                  BGP_MSGSIZE_OPENMSG_MIN);
 
     struct IPAddressPrefix {
         uint8_t length;
-        uint8_t *prefix;
+        std::unique_ptr<uint8_t[]> prefix;
     };
 
     union AttributeFlags {
@@ -132,14 +138,14 @@ namespace route::bgp {
 
     struct PathAttribute {
         AttributeType attr_type;
-        uint8_t *attr_len;
-        uint8_t *attr_value;
+        std::unique_ptr<uint8_t[]> attr_len;
+        std::unique_ptr<uint8_t[]> attr_value;
     };
 
     struct ASPathSegment {
         uint8_t path_seg_type;
         uint8_t path_seg_len;
-        uint16_t *path_seg_value;
+        std::unique_ptr<uint16_t[]> path_seg_value;
     };
 
     struct AggregatorAttributeValue {
@@ -148,7 +154,7 @@ namespace route::bgp {
     };
 
     using origin_attr_type = uint8_t;
-    using as_path_attr_type = ASPathSegment *;
+    using as_path_attr_type = std::unique_ptr<ASPathSegment[]>;
     using next_hop_attr_type = uint32_t;
     using multi_exit_disc_attr_type = uint32_t;
     using local_pref_attr_type = uint32_t;
@@ -157,25 +163,26 @@ namespace route::bgp {
 
     struct UpdateMessage {
         uint16_t withdrawn_routes_len;
-        IPAddressPrefix *withdrawn_routes;
+        std::unique_ptr<IPAddressPrefix[]> withdrawn_routes;
         uint16_t total_path_attr_len;
-        PathAttribute *path_attrs;
-        IPAddressPrefix *nlri;
+        std::unique_ptr<PathAttribute[]> path_attrs;
+        std::unique_ptr<IPAddressPrefix[]> nlri;
     };
-    static_assert(sizeof(UpdateMessage) - 2 * sizeof(IPAddressPrefix *) - sizeof(PathAttribute *) + BGP_MSGSIZE_MIN ==
-                  BGP_MSGSIZE_UPDATEMSG_MIN);
+    static_assert(sizeof(UpdateMessage) - 2 * sizeof(std::unique_ptr<IPAddressPrefix[]>) -
+                  sizeof(std::unique_ptr<PathAttribute[]>) + BGP_MSGSIZE_MIN == BGP_MSGSIZE_UPDATEMSG_MIN);
 
     using KeepAliveMessage = nullptr_t;
 
     struct NotificationMessage {
         uint8_t error_code;
         uint8_t error_subcode;
-        uint8_t *data;
+        std::unique_ptr<uint8_t[]> data;
 
         NotificationMessage();
     };
 
-    static_assert(sizeof(NotificationMessage) - sizeof(uint8_t *) + BGP_MSGSIZE_MIN == BGP_MSGSIZE_NOTIFICATIONMSG_MIN);
+    static_assert(sizeof(NotificationMessage) - sizeof(std::unique_ptr<uint8_t[]>) + BGP_MSGSIZE_MIN ==
+                  BGP_MSGSIZE_NOTIFICATIONMSG_MIN);
 
 #pragma pack(pop)
 }

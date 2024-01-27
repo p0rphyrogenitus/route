@@ -11,9 +11,16 @@
 
 
 namespace route::bgp {
+    struct DeserializeMessageErrorResult {
+        Header header;
+        NotificationMessage message;
+
+        DeserializeMessageErrorResult();
+    };
+
     struct DeserializeMessageResult {
         std::variant<OpenMessage, UpdateMessage, NotificationMessage, KeepAliveMessage> message;
-        std::optional<NotificationMessage> error_response;
+        std::optional<DeserializeMessageErrorResult> error;
     };
 
     class MessageDeserializer {

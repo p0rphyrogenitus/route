@@ -5,9 +5,12 @@
 #include "MessageDeserializer.hpp"
 
 
+route::bgp::DeserializeMessageErrorResult::DeserializeMessageErrorResult() {
+    header.type = BGP_MSGTYPE_NOTIFICATION;
+}
+
 route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserialize(const uint8_t *buffer,
                                                                                   uint16_t buf_size) {
-    NotificationMessage error_response;
     DeserializeMessageResult result;
 
     // Validate basic synchronization
@@ -20,8 +23,10 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
         }
     }
     if (buf_sync_err) {
-        error_response.error_code = BGP_ERR_MESSAGE_HEADER;
-        error_response.error_subcode = BGP_SUBERR_MESSAGE_HEADER_CONN_NOT_SYNC;
+        result.error.emplace();
+        result.error->message.error_code = BGP_ERR_MESSAGE_HEADER;
+        result.error->message.error_subcode = BGP_SUBERR_MESSAGE_HEADER_CONN_NOT_SYNC;
+        result.error->header.length = BGP_MSGSIZE_NOTIFICATIONMSG_MIN;
         return result;
     }
 
@@ -33,10 +38,17 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
         header->type == BGP_MSGTYPE_KEEPALIVE && header->length != BGP_MSGSIZE_KEEPALIVEMSG ||
         header->type == BGP_MSGTYPE_NOTIFICATION && header->length < BGP_MSGSIZE_NOTIFICATIONMSG_MIN
             ) {
-        error_response.error_code = BGP_ERR_MESSAGE_HEADER;
-        error_response.error_subcode = BGP_SUBERR_MESSAGE_HEADER_BAD_MSG_LEN;
-        // TODO Set response data
+        result.error.emplace();
+        result.error->message.error_code = BGP_ERR_MESSAGE_HEADER;
+        result.error->message.error_subcode = BGP_SUBERR_MESSAGE_HEADER_BAD_MSG_LEN;
+        result.error->message.data = std::make_unique<uint8_t[]>(2);
+        for (uint8_t i = 16; i != 0; i -= 8) {
+            result.error->message.data[(16 - i) / 8] = (header->length >> (i - 8)) & 0xFF;
+        }
+        result.error->header.length = BGP_MSGSIZE_NOTIFICATIONMSG_MIN + 2;
+        return result;
     }
+    
     // TODO deserialize
 
     return result;
