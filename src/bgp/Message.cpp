@@ -19,19 +19,19 @@ route::bgp::AttributeType::AttributeType(uint8_t attr_type_code, uint8_t options
         case BGP_ATTRTYPECODE_NEXT_HOP:
         case BGP_ATTRTYPECODE_LOCAL_PREF:
         case BGP_ATTRTYPECODE_ATOMIC_AGGREGATE:
-            set_optional(attr_flags, false);
-            set_transitive(attr_flags, true);
-            set_partial(attr_flags, false);
+            set_optional(false);
+            set_transitive(true);
+            set_partial(false);
             break;
         case BGP_ATTRTYPECODE_AS_MULTI_EXIT_DISC:
-            set_optional(attr_flags, true);
-            set_transitive(attr_flags, false);
-            set_partial(attr_flags, false);
+            set_optional(true);
+            set_transitive(false);
+            set_partial(false);
             break;
         case BGP_ATTRTYPECODE_AGGREGATOR:
-            set_optional(attr_flags, true);
-            set_transitive(attr_flags, true);
-            set_partial(attr_flags, options & 0b01);
+            set_optional(true);
+            set_transitive(true);
+            set_partial(options & 0b01);
             break;
         default:
             throw MessageFormatException(MessageFormatException::ERR_CODE_INVAL_ATTR_TYPE);
@@ -44,11 +44,11 @@ route::bgp::AttributeType::AttributeType(uint8_t attr_type_code, uint8_t options
         case BGP_ATTRTYPECODE_AS_MULTI_EXIT_DISC:
         case BGP_ATTRTYPECODE_LOCAL_PREF:
         case BGP_ATTRTYPECODE_ATOMIC_AGGREGATE:
-            set_extended_len(attr_flags, false);
+            set_extended_len(false);
             break;
         case BGP_ATTRTYPECODE_AS_PATH:
         case BGP_ATTRTYPECODE_AGGREGATOR:
-            set_extended_len(attr_flags, (options & 0b10) == 0b10);
+            set_extended_len((options & 0b10) == 0b10);
             break;
         default:
             throw MessageFormatException(MessageFormatException::ERR_CODE_INVAL_ATTR_TYPE);

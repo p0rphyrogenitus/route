@@ -105,8 +105,7 @@ void route::bgp::MessageDeserializer::deserialize_open(uint8_t *body_buffer,
 
     // TODO Validate my_as (implementation-dependent)
     // TODO Validate hold_time (implementation-dependent)
-
-    
+    // TODO Validate bgp_id (probably not implementation-dependent)
 }
 
 void route::bgp::MessageDeserializer::deserialize_update(uint8_t *body_buffer,

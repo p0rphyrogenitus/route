@@ -175,23 +175,55 @@ namespace route::bgp {
         static inline AttributeType *from_buffer(uint8_t *buffer) {
             return reinterpret_cast<AttributeType *>(buffer);
         };
+
+        [[nodiscard]] inline bool get_optional() const {
+            return (attr_flags & 0x80) >> 7;
+        }
+
+        inline void set_optional(bool set) {
+            if (set) {
+                attr_flags |= 0x80;
+            } else {
+                attr_flags &= ~0x80;
+            }
+        }
+
+        [[nodiscard]] inline bool get_transitive() const {
+            return (attr_flags & 0x40) >> 6;
+        }
+
+        inline void set_transitive(bool set) {
+            if (set) {
+                attr_flags |= 0x40;
+            } else {
+                attr_flags &= ~0x40;
+            }
+        }
+
+        [[nodiscard]] inline bool get_partial() const {
+            return (attr_flags & 0x20) >> 5;
+        }
+
+        inline void set_partial(bool set) {
+            if (set) {
+                attr_flags |= 0x20;
+            } else {
+                attr_flags &= ~0x20;
+            }
+        }
+
+        [[nodiscard]] inline bool get_extended_len() const {
+            return (attr_flags & 0x10) >> 4;
+        }
+
+        inline void set_extended_len(bool set) {
+            if (set) {
+                attr_flags |= 0x10;
+            } else {
+                attr_flags &= ~0x10;
+            }
+        }
     };
-
-    uint8_t get_optional(const uint8_t &attr_flags);
-
-    void set_optional(uint8_t &attr_flags, bool set);
-
-    uint8_t get_transitive(const uint8_t &attr_flags);
-
-    void set_transitive(uint8_t &attr_flags, bool set);
-
-    uint8_t get_partial(const uint8_t &attr_flags);
-
-    void set_partial(uint8_t &attr_flags, bool set);
-
-    uint8_t get_extended_len(const uint8_t &attr_flags);
-
-    void set_extended_len(uint8_t &attr_flags, bool set);
 
     struct PathAttribute {
         AttributeType attr_type;
