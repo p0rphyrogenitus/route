@@ -85,6 +85,28 @@ namespace route::bgp {
         uint8_t type;
 
         Header();
+
+        /**
+         * Reinterprets data at given pointer as a Header and, if appropriate, swaps bytes of multi-byte struct fields
+         * to translate network byte order to host byte order. The given pointer is assumed to be safe to reinterpret
+         * as specified here--you must do all memory-safety validations before calling this method.
+         * @param buffer
+         * @return
+         */
+        static inline Header *from_buffer(uint8_t *buffer) {
+            auto header = reinterpret_cast<Header *>(buffer);
+            header->ntoh();
+            return header;
+        }
+
+    private:
+        inline void hton() {
+            length = htons(length);
+        }
+
+        inline void ntoh() {
+            length = ntohs(length);
+        }
     };
 
     static_assert(sizeof(Header) == BGP_MSGSIZE_MIN);
@@ -95,14 +117,39 @@ namespace route::bgp {
         std::unique_ptr<uint8_t[]> param_value;
     };
 
-    struct OpenMessage {
+    struct OpenMessage_Invariant_ {
         uint8_t version;
         uint16_t my_as;
         uint16_t hold_time;
         uint32_t bgp_id;
         uint8_t opt_params_len;
+
+        static inline OpenMessage_Invariant_ *from_buffer(uint8_t *buffer) {
+            auto partial_msg = reinterpret_cast<OpenMessage_Invariant_ *>(buffer);
+            partial_msg->ntoh();
+            return partial_msg;
+        }
+
+    private:
+        inline void hton() {
+            my_as = htons(my_as);
+            hold_time = htons(hold_time);
+            bgp_id = htonl(bgp_id);
+        }
+
+        inline void ntoh() {
+            my_as = ntohs(my_as);
+            hold_time = ntohs(hold_time);
+            bgp_id = ntohl(bgp_id);
+        }
+    };
+
+    static_assert(sizeof(OpenMessage_Invariant_) + BGP_MSGSIZE_MIN == BGP_MSGSIZE_OPENMSG_MIN);
+
+    struct OpenMessage : public OpenMessage_Invariant_ {
         std::unique_ptr<OptionalParameter[]> opt_params;
     };
+
     static_assert(sizeof(OpenMessage) - sizeof(std::unique_ptr<OptionalParameter[]>) + BGP_MSGSIZE_MIN ==
                   BGP_MSGSIZE_OPENMSG_MIN);
 
@@ -124,6 +171,10 @@ namespace route::bgp {
          * sets extended_len. Least-significant bit sets partial. Remaining bits are always ignored.
          */
         AttributeType(uint8_t attr_type_code, uint8_t options);
+
+        static inline AttributeType *from_buffer(uint8_t *buffer) {
+            return reinterpret_cast<AttributeType *>(buffer);
+        };
     };
 
     uint8_t get_optional(const uint8_t &attr_flags);
@@ -189,7 +240,6 @@ namespace route::bgp {
 
     static_assert(sizeof(NotificationMessage) - sizeof(std::unique_ptr<uint8_t[]>) + BGP_MSGSIZE_MIN ==
                   BGP_MSGSIZE_NOTIFICATIONMSG_MIN);
-
 #pragma pack(pop)
 }
 

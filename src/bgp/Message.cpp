@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <arpa/inet.h>
 #include "Exception.hpp"
 #include "Message.hpp"
 
