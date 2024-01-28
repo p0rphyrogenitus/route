@@ -7,6 +7,7 @@
 
 
 #include <optional>
+#include <vector>
 #include "Message.hpp"
 
 
@@ -20,9 +21,10 @@ namespace route::bgp {
 
     struct DeserializeMessageResult {
         std::variant<OpenMessage, UpdateMessage, NotificationMessage, KeepAliveMessage> message;
-        std::optional<DeserializeMessageErrorResult> error;
+        std::vector<DeserializeMessageErrorResult> errors;
     };
 
+    template<bool StopOnFirstError = true>
     class MessageDeserializer {
     public:
         static DeserializeMessageResult deserialize(uint8_t *buffer, uint16_t buf_size);
@@ -40,11 +42,12 @@ namespace route::bgp {
                                              uint16_t body_buf_size,
                                              DeserializeMessageResult &result);
 
-        static void build_err(std::optional<DeserializeMessageErrorResult> &error,
+        static void build_err(std::vector<DeserializeMessageErrorResult> &error,
                               uint8_t code,
                               uint8_t subcode,
                               const std::optional<std::function<uint16_t(
-                                      std::optional<DeserializeMessageErrorResult> &error)>> &build_err_data);
+                                      DeserializeMessageErrorResult &error
+                              )>> &build_err_data);
 
         static inline bool bad_msg_size(uint16_t size) {
             return size < BGP_MSGSIZE_MIN || size > BGP_MSGSIZE_MAX;
