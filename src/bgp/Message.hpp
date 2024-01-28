@@ -111,19 +111,8 @@ namespace route::bgp {
         std::unique_ptr<uint8_t[]> prefix;
     };
 
-    union AttributeFlags {
-        struct {
-            uint8_t optional: 1;
-            uint8_t transitive: 1;
-            uint8_t partial: 1;
-            uint8_t extended_len: 1;
-            uint8_t ignored: 4;
-        };
-        uint8_t value;
-    };
-
     struct AttributeType {
-        AttributeFlags attr_flags;
+        uint8_t attr_flags;
         uint8_t attr_type_code;
 
         /**
@@ -134,8 +123,24 @@ namespace route::bgp {
          * @param options Ignored if it conflicts with good behavior as described above. Second least-significant bit
          * sets extended_len. Least-significant bit sets partial. Remaining bits are always ignored.
          */
-        explicit AttributeType(uint8_t attr_type_code, uint8_t options);
+        AttributeType(uint8_t attr_type_code, uint8_t options);
     };
+
+    uint8_t get_optional(const uint8_t &attr_flags);
+
+    void set_optional(uint8_t &attr_flags, bool set);
+
+    uint8_t get_transitive(const uint8_t &attr_flags);
+
+    void set_transitive(uint8_t &attr_flags, bool set);
+
+    uint8_t get_partial(const uint8_t &attr_flags);
+
+    void set_partial(uint8_t &attr_flags, bool set);
+
+    uint8_t get_extended_len(const uint8_t &attr_flags);
+
+    void set_extended_len(uint8_t &attr_flags, bool set);
 
     struct PathAttribute {
         AttributeType attr_type;

@@ -19,6 +19,7 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
         for (uint8_t i = BGP_MSG_MARKER_LEN; i != 0; --i) {
             if (buffer[i] != 0xFF) {
                 buf_sync_err = true;
+                break;
             }
         }
     }
