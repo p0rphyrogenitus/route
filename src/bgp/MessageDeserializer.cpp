@@ -10,7 +10,7 @@ route::bgp::DeserializeMessageErrorResult::DeserializeMessageErrorResult() {
 }
 
 route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserialize(const uint8_t *buffer,
-                                                                                  uint16_t buf_size) {
+                                                                                  const uint16_t buf_size) {
     DeserializeMessageResult result;
 
     // Validate basic synchronization
@@ -31,8 +31,11 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
     }
 
     // Validate header
+    // TODO This reinterpret_cast may not be safe. Consider endianness, padding (should be taken care of by #pragmas
+    //  in Message.hpp, but some compilers might not support this, technically).
     auto header = reinterpret_cast<const Header *>(buffer);
     if (bad_msg_size(header->length) ||
+        header->length != buf_size ||
         header->type == BGP_MSGTYPE_OPEN && header->length < BGP_MSGSIZE_OPENMSG_MIN ||
         header->type == BGP_MSGTYPE_UPDATE && header->length < BGP_MSGSIZE_UPDATEMSG_MIN ||
         header->type == BGP_MSGTYPE_KEEPALIVE && header->length != BGP_MSGSIZE_KEEPALIVEMSG ||
@@ -49,18 +52,20 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
         return result;
     }
 
+    const uint8_t *body_buffer = buffer + BGP_MSGSIZE_MIN;
+    const uint16_t body_buf_size = buf_size - BGP_MSGSIZE_MIN;
     switch (header->type) {
         case BGP_MSGTYPE_OPEN:
-            // TODO
+            deserialize_open(body_buffer, body_buf_size, result);
             break;
         case BGP_MSGTYPE_UPDATE:
-            // TODO
+            deserialize_update(body_buffer, body_buf_size, result);
             break;
         case BGP_MSGTYPE_NOTIFICATION:
-            // TODO
+            deserialize_notification(body_buffer, body_buf_size, result);
             break;
         case BGP_MSGTYPE_KEEPALIVE:
-            // TODO
+            result.message = nullptr;
             break;
         default:
             result.error.emplace();
@@ -73,6 +78,24 @@ route::bgp::DeserializeMessageResult route::bgp::MessageDeserializer::deserializ
     }
 
     return result;
+}
+
+void route::bgp::MessageDeserializer::deserialize_open(const uint8_t *body_buffer,
+                                                       const uint16_t body_buf_size,
+                                                       DeserializeMessageResult &result) {
+    // TODO
+}
+
+void route::bgp::MessageDeserializer::deserialize_update(const uint8_t *body_buffer,
+                                                         const uint16_t body_buf_size,
+                                                         route::bgp::DeserializeMessageResult &result) {
+    // TODO
+}
+
+void route::bgp::MessageDeserializer::deserialize_notification(const uint8_t *body_buffer,
+                                                               const uint16_t body_buf_size,
+                                                               route::bgp::DeserializeMessageResult &result) {
+    //TODO
 }
 
 bool route::bgp::MessageDeserializer::bad_msg_size(uint16_t size) {

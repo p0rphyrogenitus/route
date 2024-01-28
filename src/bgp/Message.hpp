@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 
+constexpr uint8_t BGP_VERSION = 4;
 
 constexpr uint16_t
         BGP_MSGSIZE_MIN = 19,

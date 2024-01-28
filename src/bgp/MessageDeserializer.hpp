@@ -28,6 +28,18 @@ namespace route::bgp {
         static DeserializeMessageResult deserialize(const uint8_t *buffer, uint16_t buf_size);
 
     private:
+        static void deserialize_open(const uint8_t *body_buffer,
+                                     uint16_t body_buf_size,
+                                     DeserializeMessageResult &result);
+
+        static void deserialize_update(const uint8_t *body_buffer,
+                                       uint16_t body_buf_size,
+                                       DeserializeMessageResult &result);
+
+        static void deserialize_notification(const uint8_t *body_buffer,
+                                             uint16_t body_buf_size,
+                                             DeserializeMessageResult &result);
+
         static inline bool bad_msg_size(uint16_t size);
     };
 }
